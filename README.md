@@ -202,7 +202,7 @@ Controls the interactive behavior, including:
 
 The teacher photograph displayed on the card cover and inside the teacher spotlight.
 
----
+LIVE: https://jamjamgerao-beep.github.io/GREETINGS-FOR-YOU/
 
 ## ▶️ How to Run
 
