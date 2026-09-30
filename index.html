@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Teachers' Day - Interactive Book Card</title>
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      
+      /* Cover Elegant Theme */
+      --cover-bg: linear-gradient(145deg, #1e1b4b 0%, #0f172a 60%, #090d16 100%);
+      --cover-border: #312e81;
+      --cover-accent: #fbbf24;
+      --cover-gold-glow: rgba(251, 191, 36, 0.3);
+      
+      /* Soft Warm Paper Palette */
+      --paper-bg-left: linear-gradient(135deg, #fffcf5 0%, #f7f0e3 100%);
+      --paper-bg-right: linear-gradient(135deg, #f7f0e3 0%, #fffcf5 100%);
+      --paper-border-accent: rgba(217, 119, 6, 0.25);
+      
+      --text-dark: #1e293b;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+      --transition: all 0.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      width: 95%;
+      max-width: 1200px;
+      height: 85vh;
+      min-height: 600px;
+      gap: 2rem;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Controls Sidebar Panel */
+    .controls-panel {
+      flex: 1;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      overflow-y: auto;
+    }
+
+    .controls-panel h2 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .input-group label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .input-group input,
+    .input-group textarea {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus,
+    .input-group textarea:focus {
+      border-color: var(--primary-color);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .primary-btn {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .primary-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .secondary-btn {
+      background: #334155;
+      color: white;
+    }
+
+    .secondary-btn:hover {
+      background: #475569;
+    }
+
+    /* Main Book View Container */
+    .book-viewport {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      perspective: 1500px;
+    }
+
+    .book-stage {
+      width: 360px;
+      height: 520px;
+      position: relative;
+      perspective: 1500px;
+    }
+
+    .book {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Page Setup */
+    .page {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      cursor: pointer;
+    }
+
+    .page.page-flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .page-side {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      backface-visibility: hidden;
+      border-radius: 0 8px 8px 0;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .page-front {
+      z-index: 2;
+    }
+
+    .page-back {
+      transform: rotateY(180deg);
+      border-radius: 8px 0 0 8px;
+      z-index: 1;
+    }
+
+    /* ---------------------------------------------------- */
+    /* ELEGANTER BEAUTIFIED COVER FRONT STYLING             */
+    /* ---------------------------------------------------- */
+    .cover-front {
+      background: var(--cover-bg);
+      border: 1px solid #4338ca;
+      color: var(--text-light);
+      padding: 1.2rem;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .cover-border {
+      position: relative;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      outline: 1px dashed rgba(251, 191, 36, 0.2);
+      outline-offset: -5px;
+      height: 100%;
+      border-radius: 6px;
+      padding: 1rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      background: radial-gradient(circle at center, rgba(30, 27, 75, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+    }
+
+    /* Decorative Corner Elements */
+    .corner-accent {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-color: var(--cover-accent);
+      border-style: solid;
+    }
+    .corner-top-left { top: 3px; left: 3px; border-width: 2px 0 0 2px; }
+    .corner-top-right { top: 3px; right: 3px; border-width: 2px 2px 0 0; }
+    .corner-bottom-left { bottom: 3px; left: 3px; border-width: 0 0 2px 2px; }
+    .corner-bottom-right { bottom: 3px; right: 3px; border-width: 0 2px 2px 0; }
+
+    .cover-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      margin-top: 0.2rem;
+    }
+
+    .badge-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid var(--cover-accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--cover-accent);
+      box-shadow: 0 0 15px var(--cover-gold-glow);
+      margin-bottom: 0.2rem;
+    }
+
+    .cover-front h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.35rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #ffffff 0%, #fef08a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .sub-heading {
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .divider-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 80%;
+      margin: 0.2rem 0;
+      color: var(--cover-accent);
+      opacity: 0.6;
+      font-size: 0.6rem;
+    }
+    .divider-line::before, .divider-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cover-accent), transparent);
+    }
+
+    .recipient-box {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .to-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    .teacher-name-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cover-accent);
+      margin-top: 0.1rem;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* Enhanced Photo Framing with Ring Glow */
+    .cover-photo-frame {
+      width: 105px;
+      height: 105px;
+      margin: 0.2rem auto 0.6rem;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px var(--cover-gold-glow);
+      position: relative;
+    }
+
+    .teacher-photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: top center;
+      border: 2px solid #0f172a;
+    }
+
+    .subject-pill {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 0.25rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+
+    .click-hint {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .pulse-icon {
+      animation: pulse 1.5s infinite;
+      color: var(--cover-accent);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(4px); }
+    }
+
+    /* Inside Pages Styling */
+    .inside-left {
+      background: var(--paper-bg-left);
+      color: var(--text-dark);
+      padding: 1.5rem;
+      box-shadow: inset -15px 0 20px -10px rgba(0, 0, 0, 0.15);
+    }
+
+    .inside-right {
+      background: var(--paper-bg-right);
+      color: var(--text-dark);
+      padding: 1.5rem;
+      box-shadow: inset 15px 0 20px -10px rgba(0, 0, 0, 0.15);
+    }
+
+    .notebook-lines {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      border: 1px solid var(--paper-border-accent);
+      border-radius: 8px;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .decorative-quote {
+      margin-top: 0.2rem;
+    }
+
+    .quote-mark {
+      font-size: 1.2rem;
+      color: #d97706;
+      opacity: 0.8;
+    }
+
+    .quote-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.88rem;
+      color: #334155;
+    }
+
+    .quote-author {
+      font-size: 0.75rem;
+      color: #78350f;
+      font-weight: 600;
+    }
+
+    .avatar-circle {
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #d97706;
+      margin: 0.5rem auto;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    .teacher-spotlight h3 {
+      font-size: 1rem;
+      color: #78350f;
+    }
+
+    .spotlight-sub {
+      font-size: 0.8rem;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .appreciation-list {
+      text-align: left;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: rgba(254, 243, 199, 0.6);
+      padding: 0.8rem;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+    }
+
+    .list-item i {
+      color: #059669;
+      margin-right: 0.4rem;
+    }
+
+    .letter-paper {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid var(--paper-border-accent);
+      border-radius: 8px;
+      padding: 1.2rem;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .letter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(217, 119, 6, 0.2);
+      padding-bottom: 0.4rem;
+    }
+
+    .letter-header h2 {
+      font-size: 1.05rem;
+      color: #78350f;
+    }
+
+    .date-badge {
+      font-size: 0.7rem;
+      color: #b45309;
+      font-weight: 600;
+    }
+
+    .letter-body {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #334155;
+      margin: 0.5rem 0;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .additional-note-box {
+      background: rgba(254, 243, 199, 0.4);
+      border: 1px dashed rgba(217, 119, 6, 0.4);
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-size: 0.78rem;
+      color: #78350f;
+    }
+
+    .additional-note-box strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #b45309;
+    }
+
+    .letter-footer {
+      text-align: right;
+      border-top: 1px solid rgba(217, 119, 6, 0.2);
+      padding-top: 0.4rem;
+    }
+
+    .with-gratitude {
+      font-size: 0.75rem;
+      color: #78350f;
+    }
+
+    .student-signature {
+      font-family: 'Great Vibes', cursive;
+      font-size: 1.8rem;
+      color: #1e3a8a;
+    }
+
+    .cover-back {
+      background: var(--cover-bg);
+      border: 2px solid var(--cover-border);
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .back-cover-content .seal-logo {
+      font-size: 3rem;
+      color: var(--cover-accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .back-cover-content h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .back-cover-content p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .stars i {
+      color: var(--cover-accent);
+      margin: 0 2px;
+    }
+
+    /* Navigation Bar */
+    .navigation-bar {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .nav-arrow-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .nav-arrow-btn:hover:not(:disabled) {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .nav-arrow-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+      .app-container {
+        flex-direction: column;
+        height: auto;
+      }
+      .controls-panel {
+        max-width: 100%;
+      }
+      .book-viewport {
+        padding: 2rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Animated Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-container">
+    
+    <!-- Controls Sidebar Panel -->
+    <aside class="controls-panel">
+      <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Customize Card</h2>
+      
+      <div class="input-group">
+        <label for="teacherInput">Teacher's Name</label>
+        <input type="text" id="teacherInput" value="Prof. Randy Bello" placeholder="e.g. Prof. Santos" />
+      </div>
+
+      <div class="input-group">
+        <label for="subjectInput">Subject / Department</label>
+        <input type="text" id="subjectInput" value="Information Systems Instructor" placeholder="e.g. Information Systems Instructor" />
+      </div>
+
+      <div class="input-group">
+        <label for="studentInput">From (Your Name / Class)</label>
+        <input type="text" id="studentInput" value="Jamel Gerao" placeholder="e.g. Jamel Gerao" />
+      </div>
+
+      <div class="input-group">
+        <label for="messageInput">Main Appreciation Message</label>
+        <textarea id="messageInput" rows="3" placeholder="Write your main message here...">Thank you for your tireless dedication, endless patience, and constant encouragement. You don't just teach lessons from textbooks—you inspire us to think critically and reach higher!</textarea>
+      </div>
+
+      <div class="input-group">
+        <label for="extraMessageInput">Additional Note / Wish</label>
+        <textarea id="extraMessageInput" rows="3" placeholder="Add an extra note...">Wishing you continuous joy, great health, and success in everything you do. We truly appreciate all your hard work!</textarea>
+      </div>
+
+      <div class="btn-group">
+        <button id="celebrateBtn" class="action-btn primary-btn"><i class="fa-solid fa-hands-clapping"></i> Celebrate 🎉</button>
+        <button id="resetBookBtn" class="action-btn secondary-btn"><i class="fa-solid fa-book-open"></i> Close Book</button>
+      </div>
+    </aside>
+
+    <!-- Main Book View Container -->
+    <main class="book-viewport">
+      <div class="book-stage">
+        <div class="book" id="book">
+          
+          <!-- PAGE 1 (BEAUTIFIED COVER & INSIDE LEFT) -->
+          <div class="page" id="page1" style="z-index: 3;">
+            <!-- Front of Page 1 (Enhanced Book Cover) -->
+            <div class="page-side page-front cover-front">
+              <div class="cover-border">
+                <!-- Decorative Corner Accents -->
+                <div class="corner-accent corner-top-left"></div>
+                <div class="corner-accent corner-top-right"></div>
+                <div class="corner-accent corner-bottom-left"></div>
+                <div class="corner-accent corner-bottom-right"></div>
+
+                <div class="cover-header">
+                  <div class="badge-icon"><i class="fa-solid fa-award"></i></div>
+                  <h1>Happy Teachers' Day</h1>
+                  <div class="sub-heading">Honor • Gratitude • Inspiration</div>
+                </div>
+
+                <div class="divider-line"><i class="fa-solid fa-star"></i></div>
+
+                <div class="recipient-box">
+                  <span class="to-label">Honoring Our Mentor</span>
+                  <div id="displayTeacherCover" class="teacher-name-title">Prof. Randy Bello</div>
+                  
+                  <!-- Circular Photo Framing with Ring Glow -->
+                  <div class="cover-photo-frame">
+                    <img src="Randy-Bello.jpeg" alt="Prof. Randy Bello" class="teacher-photo" />
+                  </div>
+
+                  <div id="displaySubjectCover" class="subject-pill">Information Systems Instructor</div>
+                </div>
+
+                <div class="click-hint">
+                  <span>Click to open card</span>
+                  <i class="fa-solid fa-angles-right pulse-icon"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Back of Page 1 (Inside Left Page) -->
+            <div class="page-side page-back inside-left">
+              <div class="notebook-lines">
+                <div class="decorative-quote">
+                  <i class="fa-solid fa-quote-left quote-mark"></i>
+                  <p class="quote-text">"Education is not the filling of a pail, but the lighting of a fire."</p>
+                  <span class="quote-author">— W.B. Yeats</span>
+                </div>
+                
+                <div class="teacher-spotlight">
+                  <div class="avatar-circle">
+                    <img src="Randy-Bello.jpeg" alt="Prof. Randy Bello" class="avatar-img" />
+                  </div>
+                  <h3>Dedicated Educator</h3>
+                  <p class="spotlight-sub" id="displaySubjectInside">Information Systems Instructor</p>
+                </div>
+
+                <div class="appreciation-list">
+                  <div class="list-item"><i class="fa-solid fa-check"></i> Inspiring Minds</div>
+                  <div class="list-item"><i class="fa-solid fa-check"></i> Guiding Futures</div>
+                  <div class="list-item"><i class="fa-solid fa-check"></i> Building Character</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGE 2 (MAIN LETTER & BACK COVER) -->
+          <div class="page" id="page2" style="z-index: 2;">
+            <!-- Front of Page 2 (Inside Right Page / Main Message) -->
+            <div class="page-side page-front inside-right">
+              <div class="letter-paper">
+                <div class="letter-header">
+                  <h2>Dear <span id="displayTeacherLetter">Prof. Randy Bello</span>,</h2>
+                  <div class="date-badge"><i class="fa-regular fa-calendar-check"></i> Teachers' Day 2026</div>
+                </div>
+
+                <div class="letter-body">
+                  <p id="displayMessage">
+                    Thank you for your tireless dedication, endless patience, and constant encouragement. You don't just teach lessons from textbooks—you inspire us to think critically and reach higher!
+                  </p>
+                  
+                  <div class="additional-note-box">
+                    <strong><i class="fa-solid fa-heart"></i> Special Note:</strong>
+                    <span id="displayExtraMessage">Wishing you continuous joy, great health, and success in everything you do. We truly appreciate all your hard work!</span>
+                  </div>
+                </div>
+
+                <div class="letter-footer">
+                  <p class="with-gratitude">With sincere gratitude,</p>
+                  <p id="displayStudent" class="student-signature">Jamel Gerao</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Back of Page 2 (Back Cover) -->
+            <div class="page-side page-back cover-back">
+              <div class="back-cover-content">
+                <div class="seal-logo"><i class="fa-solid fa-award"></i></div>
+                <h3>Thank You Teacher!</h3>
+                <p>Your impact extends far beyond the classroom walls.</p>
+                <div class="stars">
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /.book -->
+      </div> <!-- /.book-stage -->
+
+      <!-- Book Navigation Toolbar -->
+      <div class="navigation-bar">
+        <button id="prevBtn" class="nav-arrow-btn" disabled title="Previous Page">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <span id="pageIndicator" class="page-indicator">Cover</span>
+        <button id="nextBtn" class="nav-arrow-btn" title="Next Page">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const book = document.getElementById('book');
+      const page1 = document.getElementById('page1');
+      const page2 = document.getElementById('page2');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const celebrateBtn = document.getElementById('celebrateBtn');
+      const resetBookBtn = document.getElementById('resetBookBtn');
+
+      // Input Fields
+      const teacherInput = document.getElementById('teacherInput');
+      const subjectInput = document.getElementById('subjectInput');
+      const studentInput = document.getElementById('studentInput');
+      const messageInput = document.getElementById('messageInput');
+      const extraMessageInput = document.getElementById('extraMessageInput');
+
+      // Display Elements
+      const displayTeacherCover = document.getElementById('displayTeacherCover');
+      const displaySubjectCover = document.getElementById('displaySubjectCover');
+      const displaySubjectInside = document.getElementById('displaySubjectInside');
+      const displayTeacherLetter = document.getElementById('displayTeacherLetter');
+      const displayMessage = document.getElementById('displayMessage');
+      const displayExtraMessage = document.getElementById('displayExtraMessage');
+      const displayStudent = document.getElementById('displayStudent');
+
+      let currentPage = 0;
+      const totalPages = 2;
+
+      // Real-time Inputs Synchronizer
+      teacherInput.addEventListener('input', (e) => {
+        const val = e.target.value || "Prof. Randy Bello";
+        displayTeacherCover.textContent = val;
+        displayTeacherLetter.textContent = val;
+      });
+
+      subjectInput.addEventListener('input', (e) => {
+        const val = e.target.value || "Information Systems Instructor";
+        displaySubjectCover.textContent = val;
+        displaySubjectInside.textContent = val;
+      });
+
+      studentInput.addEventListener('input', (e) => {
+        displayStudent.textContent = e.target.value || "Jamel Gerao";
+      });
+
+      messageInput.addEventListener('input', (e) => {
+        displayMessage.textContent = e.target.value || "Your message will appear here...";
+      });
+
+      extraMessageInput.addEventListener('input', (e) => {
+        displayExtraMessage.textContent = e.target.value || "Your additional note will appear here...";
+      });
+
+      // 3D Page Flip Control Logic
+      function updateBookState() {
+        if (currentPage === 0) {
+          page1.classList.remove('page-flipped');
+          page2.classList.remove('page-flipped');
+          book.style.transform = 'translateX(0%)';
+          prevBtn.disabled = true;
+          nextBtn.disabled = false;
+          pageIndicator.textContent = 'Cover';
+        } else if (currentPage === 1) {
+          page1.classList.add('page-flipped');
+          page2.classList.remove('page-flipped');
+          book.style.transform = 'translateX(25%)';
+          prevBtn.disabled = false;
+          nextBtn.disabled = false;
+          pageIndicator.textContent = 'Page 1 & 2';
+        } else if (currentPage === 2) {
+          page1.classList.add('page-flipped');
+          page2.classList.add('page-flipped');
+          book.style.transform = 'translateX(50%)';
+          prevBtn.disabled = false;
+          nextBtn.disabled = true;
+          pageIndicator.textContent = 'Back Cover';
+        }
+      }
+
+      function nextPage() {
+        if (currentPage < totalPages) {
+          currentPage++;
+          updateBookState();
+        }
+      }
+
+      function prevPage() {
+        if (currentPage > 0) {
+          currentPage--;
+          updateBookState();
+        }
+      }
+
+      nextBtn.addEventListener('click', nextPage);
+      prevBtn.addEventListener('click', prevPage);
+
+      page1.addEventListener('click', () => {
+        if (currentPage === 0) nextPage();
+        else if (currentPage === 1) prevPage();
+      });
+
+      page2.addEventListener('click', () => {
+        if (currentPage === 1) nextPage();
+        else if (currentPage === 2) prevPage();
+      });
+
+      resetBookBtn.addEventListener('click', () => {
+        currentPage = 0;
+        updateBookState();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowRight') nextPage();
+        if (e.key === 'ArrowLeft') prevPage();
+      });
+
+      // Background Particles Canvas Animation
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      class Particle {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = canvas.height + Math.random() * 20;
+          this.size = Math.random() * 3 + 1;
+          this.speedY = Math.random() * 1.5 + 0.5;
+          this.opacity = Math.random() * 0.7 + 0.3;
+          this.color = `hsla(${Math.random() * 60 + 35}, 100%, 70%, ${this.opacity})`;
+        }
+        update() {
+          this.y -= this.speedY;
+          if (this.y < -10) this.reset();
+        }
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < 40; i++) particles.push(new Particle());
+
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animateParticles);
+      }
+      animateParticles();
+
+      // Confetti Burst Effect Trigger
+      celebrateBtn.addEventListener('click', () => {
+        createConfettiBurst();
+        if (currentPage === 0) nextPage();
+      });
+
+      function createConfettiBurst() {
+        const confettiCount = 60;
+        const colors = ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#8b5cf6'];
+
+        for (let i = 0; i < confettiCount; i++) {
+          const confetti = document.createElement('div');
+          confetti.style.position = 'fixed';
+          confetti.style.left = '50%';
+          confetti.style.top = '50%';
+          confetti.style.width = '10px';
+          confetti.style.height = '10px';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.borderRadius = '2px';
+          confetti.style.zIndex = '1000';
+          confetti.style.pointerEvents = 'none';
+
+          document.body.appendChild(confetti);
+
+          const angle = Math.random() * Math.PI * 2;
+          const velocity = Math.random() * 300 + 100;
+          const x = Math.cos(angle) * velocity;
+          const y = Math.sin(angle) * velocity;
+
+          confetti.animate(
+            [
+              { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+              { transform: `translate(${x}px, ${y + 150}px) scale(0)`, opacity: 0 }
+            ],
+            {
+              duration: 1200 + Math.random() * 600,
+              easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
+            }
+          ).onfinish = () => confetti.remove();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
